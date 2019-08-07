@@ -124,11 +124,112 @@ class User extends Base
     }
 
     /**
+     * 用户编辑
+     * @return Json|View          [GET请求返回页面，POST请求返回JSON]
+     * @throws Exception
+     */
+    public function edit()
+    {
+        if (Request::isAjax()) {
+            if (Request::isGet()) {
+                return $this->returnJson(-1, '非法请求！');
+            }
+
+            $params = input('post.');
+
+            // 参数校验
+            if (!isset($params['id'])) {
+                return $this->returnJson(-1, '缺少请求参数！');
+            }
+            $validate = new \app\admin\validate\User();
+            $result = $validate->check($params);
+            if (!$result) {
+                return $this->returnJson(-1, $validate->getError());
+            }
+
+            // 数据校验
+            $mUser = new \app\admin\model\User();
+            $user = $mUser->getById($params['id']);
+            if (!$user) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+//            $user_list = $mUser->listByCondition([]);
+//            if (count($user_list) > 0) {
+//                foreach ($user_list as $v) {
+//                    if ($v['id'] != $params['id'] && $v['account'] == $params['account']) {
+//                        return $this->returnJson(-1, '登录名已存在！');
+//                    }
+//                }
+//            }
+
+            $user['profile'] = $params['profile'];
+            $user['nickname'] = $params['nickname'];
+            $user['name'] = $params['name'];
+            $user['gender'] = $params['gender'];
+            $user['phone'] = $params['phone'];
+            $user['email'] = $params['email'];
+
+            // 启动事物
+            $Db = $mUser->db(false);
+            $Db->startTrans();
+            try {
+                $res_flag = $mUser->edit($user);
+                if (!$res_flag) {
+                    // 回滚事物
+                    $Db->rollback();
+                    return $this->returnJson(-1, "编辑失败！");
+                }
+
+                // 提交事物
+                $Db->commit();
+            } catch (Exception $e) {
+                // 回滚事物
+                $Db->rollback();
+                return $this->returnJson(-1, "编辑失败！");
+            }
+
+            return $this->returnJson(1, '编辑成功！');
+        } else {
+            if (Request::isPost()) {
+                return $this->returnJson(-1, '非法请求！');
+            }
+
+            $params = input('get.');
+
+            // 参数校验
+            if (!isset($params['id'])) {
+                return $this->returnJson(-1, '缺少请求参数！');
+            }
+
+            // 数据校验
+            $mUser = new \app\admin\model\User();
+            $user = $mUser->getById($params['id']);
+            if (!$user) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+
+            if (!empty($user['profile'])) {
+
+                $user['profile_access_url'] = config('file_access_url') . $user['profile'];
+            }
+
+            // 过滤私密数据
+            unset($user['password']);
+            unset($user['salt']);
+
+            // 返回参数
+            $this->assign('user', $user);
+            return view('add');
+        }
+    }
+
+    /**
      * 用户停用
      * @return Json|void          [GET请求返回页面，POST请求返回JSON]
      * @throws Exception
      */
-    public function userStop() {
+    public function userStop()
+    {
         if (Request::isAjax()) {
             if (Request::isGet()) {
                 return $this->returnJson(-1, '非法请求！');

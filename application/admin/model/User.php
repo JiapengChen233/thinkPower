@@ -41,6 +41,8 @@ class User extends Base
         if (isset($params['end']) && !empty($params['end'])) {
             $condition[] = ['u.create_time', '<=', $params['end']];
         }
+        // 过滤超级管理员
+        $condition[] = ['u.id', '<>', 1];
         return $this->alias('u')
             ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked,u.create_time')
             ->field('r.name as role_name')

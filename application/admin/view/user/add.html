@@ -2,10 +2,11 @@
     <div class="layui-row">
         <div class="layui-col-xs10 layui-col-sm10 layui-col-md10">
             <form class="layui-form" id="form-submit">
+                <input type="hidden" id="id" name="id" value="{notempty name='$user.id'}{$user.id}{/notempty}">
                 <div class="layui-form-item">
                     <label for="account" class="layui-form-label">头像</label>
                     <div class="layui-input-inline">
-                        <input type="hidden" id="profile" name="profile">
+                        <input type="hidden" id="profile" name="profile" value="{notempty name='$user.profile'}{$user.profile}{/notempty}">
                         <input type="file" id="profileEle" accept="image/jpeg,image/jpg,image/png,image/gif" style="display: none;">
                         <input type="button" class="layui-btn" value="上传" onclick="{document.getElementById('profileEle').click()}">
                     </div>
@@ -16,12 +17,13 @@
                         <span class="x-red">*</span>登录名
                     </label>
                     <div class="layui-input-inline">
-                        <input type="text" id="account" name="account" autocomplete="off" class="layui-input">
+                        <input type="text" id="account" name="account" autocomplete="off" class="layui-input {notempty name='$user.account'}layui-disabled{/notempty}" value="{notempty name='$user.account'}{$user.account}{/notempty}" {notempty name='$user.account'}disabled{/notempty}>
                     </div>
                     <div class="layui-form-mid layui-word-aux">
-                        <span class="x-red">*</span>将会成为您唯一的登入名，要求以字母开头，不少于5位
+                        <span class="x-red">*</span>将会成为您唯一的登入名，要求以字母开头，后跟字母或数字或下划线，不少于5位
                     </div>
                 </div>
+                {if empty($user.id)}
                 <div class="layui-form-item">
                     <label for="password" class="layui-form-label">
                         <span class="x-red">*</span>密码
@@ -44,12 +46,13 @@
                         <span class="x-red">*</span>两次输入的密码要一致
                     </div>
                 </div>
+                {/if}
                 <div class="layui-form-item">
                     <label for="nickname" class="layui-form-label">
                         <span class="x-red">*</span>昵称
                     </label>
                     <div class="layui-input-inline">
-                        <input type="text" id="nickname" name="nickname" autocomplete="off" class="layui-input">
+                        <input type="text" id="nickname" name="nickname" autocomplete="off" class="layui-input" value="{notempty name='$user.nickname'}{$user.nickname}{/notempty}">
                     </div>
                     <div class="layui-form-mid layui-word-aux">
                         <span class="x-red">*</span>将会成为您用于展示的昵称
@@ -58,30 +61,30 @@
                 <div class="layui-form-item">
                     <label for="name" class="layui-form-label">姓名</label>
                     <div class="layui-input-inline">
-                        <input type="text" id="name" name="name" autocomplete="off" class="layui-input">
+                        <input type="text" id="name" name="name" autocomplete="off" class="layui-input" value="{notempty name='$user.name'}{$user.name}{/notempty}">
                     </div>
                     <div class="layui-form-mid layui-word-aux">请输入您的真实姓名</div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">性别</label>
                     <div class="layui-input-inline">
-                        <input type="checkbox" name="gender" value="0" lay-skin="primary" title="未知" checked>
-                        <input type="checkbox" name="gender" value="1" lay-skin="primary" title="男">
-                        <input type="checkbox" name="gender" value="2" lay-skin="primary" title="女">
+                        <input type="checkbox" name="gender" value="0" lay-skin="primary" title="未知" {if empty($user)}checked{else/}{if !empty($user) && isset($user.gender) && $user.gender==0}checked{/if}{/if}>
+                        <input type="checkbox" name="gender" value="1" lay-skin="primary" title="男" {if !empty($user) && $user.gender && $user.gender==1}checked{/if}>
+                        <input type="checkbox" name="gender" value="2" lay-skin="primary" title="女" {if !empty($user) && $user.gender && $user.gender==2}checked{/if}>
                     </div>
                     <div class="layui-form-mid layui-word-aux">请选择您的性别</div>
                 </div>
                 <div class="layui-form-item">
                     <label for="phone" class="layui-form-label">手机</label>
                     <div class="layui-input-inline">
-                        <input type="text" id="phone" name="phone" autocomplete="off" class="layui-input">
+                        <input type="text" id="phone" name="phone" autocomplete="off" class="layui-input" value="{notempty name='$user.phone'}{$user.phone}{/notempty}">
                     </div>
                     <div class="layui-form-mid layui-word-aux">请输入您的手机号</div>
                 </div>
                 <div class="layui-form-item">
                     <label for="email" class="layui-form-label">邮箱</label>
                     <div class="layui-input-inline">
-                        <input type="text" id="email" name="email" autocomplete="off" class="layui-input">
+                        <input type="text" id="email" name="email" autocomplete="off" class="layui-input" value="{notempty name='$user.email'}{$user.email}{/notempty}">
                     </div>
                     <div class="layui-form-mid layui-word-aux">请输入您的邮箱</div>
                 </div>
@@ -94,7 +97,7 @@
             <div class="layui-form-item">
                 <div class="ta-center">
                     <label>预览</label>
-                    <img alt="头像" class="user-profile mt-10" id="profileImg" src="__ADMIN__/img/profile.png"/>
+                    <img alt="头像" class="user-profile mt-10" id="profileImg" src="{if !empty($user) && $user.profile}{$user.profile_access_url}{else/}__ADMIN__/img/profile.png{/if}"/>
                 </div>
             </div>
         </div>
@@ -143,16 +146,18 @@
         //监听提交
         form.on('submit(add)', function (data) {
             //发异步，把数据提交给php
-            ajaxDefalutRequest(data.field, "{:url('add')}", function (res) {
+            var url = '';
+            if ($("#id").val() === '') {
+                url = "{:url('add')}";
+            } else {
+                url = "{:url('edit')}";
+            }
+            ajaxDefalutRequest(data.field, url, function (res) {
                 if (res.state === -1) {
                     layer.alert(res.message, {icon: 5});
                 } else {
-                    layer.alert(res.message, {icon: 6}, function () {
-                        //关闭当前frame
-                        xadmin.close();
-                        // 可以对父窗口进行刷新
-                        xadmin.father_reload();
-                    });
+                    layer.alert(res.message, {icon: 6});
+                    parent.location.reload();
                 }
             });
             return false;

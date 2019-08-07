@@ -15,17 +15,20 @@ use think\response\Json;
  */
 class Base extends Controller
 {
+    protected $super_admin_id = 1; // 超级管理员ID
+
     /**
      * 返回JSON数据
      * @param int $state          状态码：1代表成功，0代表失败
      * @param string $message     结果信息
      * @param array $data         返回的数据
-     * @return Json             JSON对象
+     * @return Json              JSON对象
      * @author RonaldoC
      * @version 1.0.0
      * @date 2019-8-4 10:41:49
      */
-    protected function returnJson($state = 1, $message = "", $data = []) {
+    protected function returnJson($state = 1, $message = "", $data = [])
+    {
         $arr = [
             'state' => $state,
             'message' => $message,

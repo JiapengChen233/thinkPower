@@ -23,6 +23,12 @@ class Base extends Model
             $user['creator'] = 1;
             $user['updater'] = 1;
         });
+
+        // 更新前设置
+        self::beforeUpdate(function ($user) {
+            $user['creator'] = 1;
+            $user['updater'] = 1;
+        });
     }
 
 }
