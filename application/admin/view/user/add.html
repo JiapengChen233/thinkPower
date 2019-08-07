@@ -108,11 +108,11 @@
         uploadImage("{:url('admin/upload/uploadImage')}", file, function (e) {
         }, function (res) {
             if (res.state === -1) {
-                layer.alert(res.message, {icon: 2});
+                layer.alert(res.message, {icon: 5});
             } else {
                 $("#profile").val(res.data.url);
                 $("#profileImg").attr("src", res.data.access_url);
-                layer.alert(res.message, {icon: 1});
+                layer.alert(res.message, {icon: 6});
             }
         }, function (res) {
         });
@@ -145,7 +145,7 @@
             //发异步，把数据提交给php
             ajaxDefalutRequest(data.field, "{:url('add')}", function (res) {
                 if (res.state === -1) {
-                    layer.alert(res.message, {icon: 2});
+                    layer.alert(res.message, {icon: 5});
                 } else {
                     layer.alert(res.message, {icon: 6}, function () {
                         //关闭当前frame

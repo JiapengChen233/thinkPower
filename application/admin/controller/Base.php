@@ -4,6 +4,7 @@
 namespace app\admin\controller;
 
 use think\Controller;
+use think\response\Json;
 
 /**
  * 全局控制器
@@ -19,12 +20,12 @@ class Base extends Controller
      * @param int $state          状态码：1代表成功，0代表失败
      * @param string $message     结果信息
      * @param array $data         返回的数据
-     * @return string             JSON对象
+     * @return Json             JSON对象
      * @author RonaldoC
      * @version 1.0.0
      * @date 2019-8-4 10:41:49
      */
-    public function returnJson($state = 1, $message = "", $data = []) {
+    protected function returnJson($state = 1, $message = "", $data = []) {
         $arr = [
             'state' => $state,
             'message' => $message,
@@ -35,4 +36,4 @@ class Base extends Controller
 
 }
 
-?>
+

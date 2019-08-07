@@ -5,7 +5,6 @@ namespace app\admin\controller;
 
 use think\facade\Request;
 use think\response\Json;
-use think\response\View;
 
 /**
  * 上传控制器
@@ -18,7 +17,7 @@ class Upload extends Base
 {
     /**
      * 上传头像
-     * @return Json|View          [GET请求返回页面，POST请求返回JSON]
+     * @return Json|void          [GET请求返回页面，POST请求返回JSON]
      */
     public function uploadImage()
     {
@@ -46,4 +45,4 @@ class Upload extends Base
 
 }
 
-?>
+

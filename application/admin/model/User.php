@@ -29,11 +29,20 @@ class User extends Base
     public function listByPage($params)
     {
         $condition = [];
-        if (isset($params['account'])) {
+        if (isset($params['account']) && !empty($params['account'])) {
             $condition[] = ['u.account', 'like', '%' . $params['account'] . '%'];
         }
+        if (isset($params['nickname']) && !empty($params['nickname'])) {
+            $condition[] = ['u.nickname', 'like', '%' . $params['nickname'] . '%'];
+        }
+        if (isset($params['start']) && !empty($params['start'])) {
+            $condition[] = ['u.create_time', '>=', $params['start']];
+        }
+        if (isset($params['end']) && !empty($params['end'])) {
+            $condition[] = ['u.create_time', '<=', $params['end']];
+        }
         return $this->alias('u')
-            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked')
+            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked,u.create_time')
             ->field('r.name as role_name')
             ->leftJoin(['__ROLE__' => 'r'], 'u.role_id=r.id')
             ->where($condition)
@@ -59,16 +68,39 @@ class User extends Base
     }
 
     /**
+     * 根据id查询用户信息
+     * @param $id int          [用户id]
+     * @return mixed           [存在返回User对象，不存在返回null]
+     */
+    public function getById($id)
+    {
+        return $this::get($id);
+    }
+
+    /**
      * 新增
+     * @param array $user [用户信息]
+     * @return bool                [成功返回true，失败返回false]
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-6 19:54:36
+     */
+    public function add($user)
+    {
+        return $this->save($user);
+    }
+
+    /**
+     * 编辑
      * @param array $user          [用户信息]
      * @return bool                [成功返回true，失败返回false]
      * @author RonaldoC
      * @version 1.0.0
      * @date 2019-8-6 19:54:36
      */
-    public function insert($user)
+    public function edit($user)
     {
-        return $this->save($user);
+        return $user->save();
     }
 
 }

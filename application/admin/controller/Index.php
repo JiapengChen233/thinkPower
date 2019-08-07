@@ -35,4 +35,4 @@ class Index extends Base
     }
 }
 
-?>
+
