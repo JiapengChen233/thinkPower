@@ -4,6 +4,7 @@
 namespace app\admin\model;
 
 use think\Model;
+use think\model\concern\SoftDelete;
 
 /**
  * 基础实体类
@@ -15,6 +16,10 @@ use think\Model;
 class Base extends Model
 {
     protected $autoWriteTimestamp = 'datetime'; // 开启自动时间戳
+
+    use SoftDelete; // 设置软删除
+    protected $deleteTime = 'state';
+    protected $defaultSoftDelete = 1;
 
     protected static function init()
     {

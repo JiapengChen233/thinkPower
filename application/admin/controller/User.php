@@ -224,10 +224,10 @@ class User extends Base
     }
 
     /**
-     * 用户停用
-     * @return Json|void          [GET请求返回页面，POST请求返回JSON]
-     * @throws Exception
-     */
+ * 用户停用
+ * @return Json|void          [GET请求返回页面，POST请求返回JSON]
+ * @throws Exception
+ */
     public function userStop()
     {
         if (Request::isAjax()) {
@@ -277,6 +277,57 @@ class User extends Base
             }
 
             return $this->returnJson(1, '操作成功！');
+        } else {
+            return $this->error('非法请求！');
+        }
+    }
+
+    /**
+     * 用户删除
+     * @return Json|void          [GET请求返回页面，POST请求返回JSON]
+     * @throws Exception
+     */
+    public function delete()
+    {
+        if (Request::isAjax()) {
+            if (Request::isGet()) {
+                return $this->returnJson(-1, '非法请求！');
+            }
+
+            $params = input('post.');
+
+            // 参数校验
+            if (!isset($params['id'])) {
+                return $this->returnJson(-1, '缺少请求参数！');
+            }
+
+            // 数据校验
+            $mUser = new \app\admin\model\User();
+            $user = $mUser->getById($params['id']);
+            if (!$user) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+
+            // 启动事物
+            $Db = $mUser->db(false);
+            $Db->startTrans();
+            try {
+                $res_flag = $user->delete();
+                if (!$res_flag) {
+                    // 回滚事物
+                    $Db->rollback();
+                    return $this->returnJson(-1, "删除失败！");
+                }
+
+                // 提交事物
+                $Db->commit();
+            } catch (Exception $e) {
+                // 回滚事物
+                $Db->rollback();
+                return $this->returnJson(-1, "删除失败！");
+            }
+
+            return $this->returnJson(1, '删除成功！');
         } else {
             return $this->error('非法请求！');
         }

@@ -84,7 +84,7 @@
 	        var w=($(window).width()*0.9);
 	    };
 	    if (h == null || h == '') {
-	        var h=($(window).height() - 50);
+	        var h=($(window).height() - 200);
 	    };
 	    var index = layer.open({
 	        type: 2,
