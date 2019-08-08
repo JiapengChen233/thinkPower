@@ -6,6 +6,7 @@ namespace app\admin\model;
 
 use Exception;
 use think\Collection;
+use think\Db;
 use think\Paginator;
 
 /**
@@ -81,7 +82,7 @@ class User extends Base
 
     /**
      * 新增
-     * @param array $user [用户信息]
+     * @param array $user          [用户信息]
      * @return bool                [成功返回true，失败返回false]
      * @author RonaldoC
      * @version 1.0.0
@@ -103,6 +104,23 @@ class User extends Base
     public function edit($user)
     {
         return $user->save();
+    }
+
+    /**
+     * 批量删除
+     * @param $ids string          [ID集合]
+     * @return int                 [返回成功删除的条数]
+     * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-9 00:06:50
+     */
+    public function batchDelete($ids)
+    {
+        return Db::name('user')
+            ->where('id', 'in', $ids)
+            ->useSoftDelete('state', date('Y-m-d G:i:s'))
+            ->delete();
     }
 
 }

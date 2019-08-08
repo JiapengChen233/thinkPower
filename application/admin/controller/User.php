@@ -224,10 +224,10 @@ class User extends Base
     }
 
     /**
- * 用户停用
- * @return Json|void          [GET请求返回页面，POST请求返回JSON]
- * @throws Exception
- */
+     * 用户停用
+     * @return Json|void          [GET请求返回页面，POST请求返回JSON]
+     * @throws Exception
+     */
     public function userStop()
     {
         if (Request::isAjax()) {
@@ -296,35 +296,67 @@ class User extends Base
 
             $params = input('post.');
 
-            // 参数校验
-            if (!isset($params['id'])) {
-                return $this->returnJson(-1, '缺少请求参数！');
-            }
+            if (isset($params['ids'])) { // 批量删除
 
-            // 数据校验
-            $mUser = new \app\admin\model\User();
-            $user = $mUser->getById($params['id']);
-            if (!$user) {
-                return $this->returnJson(-1, '请求参数错误！');
-            }
+                // 数据校验
+                $id_arr = explode(',', $params['ids']);
+                $condition[] = ['u.id', 'in', $params['ids']];
+                $mUser = new \app\admin\model\User();
+                $user_list = $mUser->listByCondition($condition);
+                if (count($id_arr) != count($user_list)) {
+                    return $this->returnJson(-1, '请求参数错误！');
+                }
 
-            // 启动事物
-            $Db = $mUser->db(false);
-            $Db->startTrans();
-            try {
-                $res_flag = $user->delete();
-                if (!$res_flag) {
+                // 启动事物
+                $Db = $mUser->db(false);
+                $Db->startTrans();
+                try {
+                    $count = $mUser->batchDelete($params['ids']);
+                    if ($count != count($user_list)) {
+                        // 回滚事物
+                        $Db->rollback();
+                        return $this->returnJson(-1, "删除失败！");
+                    }
+
+                    // 提交事物
+                    $Db->commit();
+                } catch (Exception $e) {
                     // 回滚事物
                     $Db->rollback();
                     return $this->returnJson(-1, "删除失败！");
                 }
+            } else { // 删除单个
 
-                // 提交事物
-                $Db->commit();
-            } catch (Exception $e) {
-                // 回滚事物
-                $Db->rollback();
-                return $this->returnJson(-1, "删除失败！");
+                // 参数校验
+                if (!isset($params['id'])) {
+                    return $this->returnJson(-1, '缺少请求参数！');
+                }
+
+                // 数据校验
+                $mUser = new \app\admin\model\User();
+                $user = $mUser->getById($params['id']);
+                if (!$user) {
+                    return $this->returnJson(-1, '请求参数错误！');
+                }
+
+                // 启动事物
+                $Db = $mUser->db(false);
+                $Db->startTrans();
+                try {
+                    $res_flag = $user->delete();
+                    if (!$res_flag) {
+                        // 回滚事物
+                        $Db->rollback();
+                        return $this->returnJson(-1, "删除失败！");
+                    }
+
+                    // 提交事物
+                    $Db->commit();
+                } catch (Exception $e) {
+                    // 回滚事物
+                    $Db->rollback();
+                    return $this->returnJson(-1, "删除失败！");
+                }
             }
 
             return $this->returnJson(1, '删除成功！');
