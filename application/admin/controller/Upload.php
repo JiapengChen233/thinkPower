@@ -18,6 +18,9 @@ class Upload extends Base
     /**
      * 上传头像
      * @return Json|void          [GET请求返回页面，POST请求返回JSON]
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-10 16:52:40
      */
     public function uploadImage()
     {

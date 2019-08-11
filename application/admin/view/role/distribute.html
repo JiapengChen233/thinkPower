@@ -4,27 +4,19 @@
             <form class="layui-form" id="form-submit">
                 <input type="hidden" id="id" name="id" value="{notempty name='$role.id'}{$role.id}{/notempty}">
                 <div class="layui-form-item">
-                    <label for="name" class="layui-form-label">
-                        <span class="x-red">*</span>角色名称
+                    <label for="par_id" class="layui-form-label">
+                        <span class="x-red">*</span>上级角色
                     </label>
                     <div class="layui-input-inline">
-                        <input type="text" id="name" name="name" autocomplete="off" class="layui-input" value="{notempty name='$role.name'}{$role.name}{/notempty}">
+                        <input type="hidden" id="par_id" name="par_id" value="{notempty name='$role.par_id'}{$role.par_id}{/notempty}">
+                        <input type="text" name="title" readonly="" class="layui-input">
+                        <div class="eleTree ele5" lay-filter="data5"></div>
                     </div>
                     <div class="layui-form-mid layui-word-aux">
-                        <span class="x-red">*</span>请输入角色名称
+                        <span class="x-red">*</span>请选择当前角色的上级角色
                     </div>
                 </div>
-                <div class="layui-form-item">
-                    <label for="desc" class="layui-form-label">
-                        <span class="x-red">*</span>描述
-                    </label>
-                    <div class="layui-input-inline">
-                        <textarea id="desc" name="desc" class="layui-textarea">{notempty name='$role.desc'}{$role.desc}{/notempty}</textarea>
-                    </div>
-                    <div class="layui-form-mid layui-word-aux">
-                        <span class="x-red">*</span>请输入内容
-                    </div>
-                </div>
+
                 <div class="layui-form-item">
                     <button class="layui-btn" lay-filter="add" lay-submit="">提交</button>
                 </div>
@@ -33,23 +25,38 @@
     </div>
 </div>
 <script>
+    layui.config({
+        base: "__COMMON__/lib/layui/lay/mymodules/"
+    }).use(['eleTree'], function () {
+        let eleTree = layui.eleTree;
+        let el5;
+        $("[name='title']").on("click", function (e) {
+            e.stopPropagation();
+            if (!el5) {
+                el5 = eleTree.render({
+                    elem: '.ele5',
+                    // data: data,
+                    url: "../eleTree/tree.json",
+                    defaultExpandAll: true,
+                    expandOnClickNode: false,
+                    highlightCurrent: true
+                });
+            }
+            $(".ele5").toggle();
+        });
+        eleTree.on("nodeClick(data5)", function (d) {
+            $("[name='title']").val(d.data.currentData.label)
+            $(".ele5").hide();
+        });
+        $(document).on("click", function () {
+            $(".ele5").hide();
+        });
+    });
+
     layui.use(['form', 'layer'], function () {
         const $ = layui.jquery;
         const form = layui.form,
             layer = layui.layer;
-
-        // 复选框选中触发事件
-        form.on('checkbox', function (data) {
-            if (data.elem.checked) {
-                $("input[name=gender]").prop("checked", false);
-                $(".layui-form-checkbox").removeClass("layui-form-checked");
-                $(data.elem).prop("checked", true);
-                $(data.othis).addClass("layui-form-checked");
-            } else {
-                $(data.elem).prop("checked", true);
-                $(data.othis).addClass("layui-form-checked");
-            }
-        });
 
         //监听提交
         form.on('submit(add)', function (data) {

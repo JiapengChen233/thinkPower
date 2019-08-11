@@ -10,13 +10,13 @@ use think\Db;
 use think\Paginator;
 
 /**
- * 用户实体类
+ * 角色实体类
  * @package app\admin\model
  * @author RonaldoC
  * @version 1.0.0
- * @date 2019-8-4 00:19:26
+ * @date 2019-8-10 12:19:47
  */
-class User extends Base
+class Role extends Base
 {
     /**
      * 根据查询条件分页查询数据
@@ -25,58 +25,55 @@ class User extends Base
      * @throws Exception
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-6 19:54:21
+     * @date 2019-8-10 13:46:1
      */
     public function listByPage($params)
     {
         $condition = [];
-        if (isset($params['account']) && !empty($params['account'])) {
-            $condition[] = ['u.account', 'like', '%' . $params['account'] . '%'];
-        }
-        if (isset($params['nickname']) && !empty($params['nickname'])) {
-            $condition[] = ['u.nickname', 'like', '%' . $params['nickname'] . '%'];
+        if (isset($params['name']) && !empty($params['name'])) {
+            $condition[] = ['r.name', 'like', '%' . $params['name'] . '%'];
         }
         if (isset($params['start']) && !empty($params['start'])) {
-            $condition[] = ['u.create_time', '>', $params['start'] . ' 00:00:00'];
+            $condition[] = ['r.create_time', '>', $params['start'] . ' 00:00:00'];
         }
         if (isset($params['end']) && !empty($params['end'])) {
-            $condition[] = ['u.create_time', '<= time', $params['end'] . '23:59:59'];
+            $condition[] = ['r.create_time', '<= time', $params['end'] . '23:59:59'];
         }
         // 过滤超级管理员
-        $condition[] = ['u.id', '<>', 1];
-        return $this->alias('u')
-            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked,u.create_time')
-            ->field('r.name as role_name')
-            ->leftJoin(['__ROLE__' => 'r'], 'u.role_id=r.id')
+        $condition[] = ['r.id', '<>', 1];
+        return $this->alias('r')
+            ->field('r.id,r.name,r.desc,r.enabled,r.create_time')
             ->where($condition)
-            ->order('u.id desc')
+            ->order('r.id desc')
             ->paginate(0, false, ['query' => $params]); // listRows为0则从配置文件中获取
     }
 
     /**
-     * 根据条件查询用户信息
+     * 根据条件查询角色信息
      * @param $params array          [查询条件]
      * @return Collection            [集合对象]
      * @throws Exception
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-6 19:57:04
+     * @date 2019-8-10 13:46:40
      */
     public function listByCondition($params)
     {
-        return $this->alias('u')
-            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked')
+        // 过滤超级管理员
+        $params[] = ['r.id', '<>', 1];
+        return $this->alias('r')
+            ->field('r.id,r.name,r.desc,r.enabled,r.create_time')
             ->where($params)
             ->select();
     }
 
     /**
-     * 根据id查询用户信息
-     * @param $id int          [用户id]
-     * @return mixed           [存在返回User对象，不存在返回null]
+     * 根据id查询角色信息
+     * @param $id int          [角色id]
+     * @return mixed           [存在返回Role对象，不存在返回null]
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-10 13:49:23
+     * @date 2019-8-10 13:47:38
      */
     public function getById($id)
     {
@@ -85,28 +82,28 @@ class User extends Base
 
     /**
      * 新增
-     * @param array $user          [用户信息]
+     * @param array $role          [角色信息]
      * @return bool                [成功返回true，失败返回false]
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-6 19:54:36
+     * @date 2019-8-10 13:47:24
      */
-    public function add($user)
+    public function add($role)
     {
-        return $this->save($user);
+        return $this->save($role);
     }
 
     /**
      * 编辑
-     * @param array $user          [用户信息]
+     * @param array $role          [角色信息]
      * @return bool                [成功返回true，失败返回false]
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-6 19:54:36
+     * @date 2019-8-10 13:47:43
      */
-    public function edit($user)
+    public function edit($role)
     {
-        return $user->save();
+        return $role->save();
     }
 
     /**
@@ -116,11 +113,11 @@ class User extends Base
      * @throws Exception
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-9 00:06:50
+     * @date 2019-8-10 13:47:48
      */
     public function batchDelete($ids)
     {
-        return Db::name('user')
+        return Db::name('role')
             ->where('id', 'in', $ids)
             ->useSoftDelete('state', date('Y-m-d G:i:s'))
             ->delete();

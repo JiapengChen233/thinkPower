@@ -94,7 +94,7 @@ function uploadImage(url, file, error, success, complete) {
  */
 function stateStop(title, obj, params, url) {
     if (title === undefined || title == null) {
-        if ($(obj).attr('title') === '启用') {
+        if ($(obj).attr('title') === '停用') {
             title = "确认要停用吗？";
         } else {
             title = "确认要启用吗？";
@@ -108,14 +108,14 @@ function stateStop(title, obj, params, url) {
             } else {
                 if ($(obj).attr('title') === '启用') {
                     $(obj).attr('title', '停用');
-                    $(obj).find('i').html('&#xe62f;');
-                    $(obj).parents("tr").find(".td-status").find('span').addClass('layui-btn-disabled').html('已停用');
-                    layer.msg('已停用!', {icon: 5, time: 1000});
-                } else {
-                    $(obj).attr('title', '启用');
                     $(obj).find('i').html('&#xe601;');
                     $(obj).parents("tr").find(".td-status").find('span').removeClass('layui-btn-disabled').html('已启用');
                     layer.msg('已启用!', {icon: 6, time: 1000});
+                } else {
+                    $(obj).attr('title', '启用');
+                    $(obj).find('i').html('&#xe62f;');
+                    $(obj).parents("tr").find(".td-status").find('span').addClass('layui-btn-disabled').html('已停用');
+                    layer.msg('已停用!', {icon: 5, time: 1000});
                 }
             }
         });

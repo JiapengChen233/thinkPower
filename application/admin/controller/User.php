@@ -21,6 +21,9 @@ class User extends Base
     /**
      * 用户列表查询
      * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-10 12:17:26
      */
     public function index()
     {
@@ -42,6 +45,9 @@ class User extends Base
      * 用户新增
      * @return Json|View          [GET请求返回页面，POST请求返回JSON]
      * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-10 13:51:10
      */
     public function add()
     {
@@ -127,6 +133,9 @@ class User extends Base
      * 用户编辑
      * @return Json|View          [GET请求返回页面，POST请求返回JSON]
      * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-10 13:51:21
      */
     public function edit()
     {
@@ -227,6 +236,9 @@ class User extends Base
      * 用户停用
      * @return Json|void          [GET请求返回页面，POST请求返回JSON]
      * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-10 13:51:31
      */
     public function userStop()
     {
@@ -286,6 +298,9 @@ class User extends Base
      * 用户删除
      * @return Json|void          [GET请求返回页面，POST请求返回JSON]
      * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-10 13:51:40
      */
     public function delete()
     {
