@@ -3,6 +3,7 @@
 
 namespace app\admin\controller;
 
+use app\admin\model\RolePower;
 use Exception;
 use think\facade\Request;
 use think\facade\Validate;
@@ -223,11 +224,11 @@ class Role extends Base
                 return $this->returnJson(-1, '请求参数错误！');
             }
 
-            // 启用
+            // 停用
             if ($role['enabled'] === 1) {
                 $role['enabled'] = 0;
 
-            } else { // 停用
+            } else {  // 启用
                 $role['enabled'] = 1;
             }
 
@@ -348,7 +349,7 @@ class Role extends Base
      * @throws Exception
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-10 16:53:12
+     * @date 2019-8-29 20:20:04
      */
     public function distributePower()
     {
@@ -363,11 +364,6 @@ class Role extends Base
             if (!isset($params['id'])) {
                 return $this->returnJson(-1, '缺少请求参数！');
             }
-            $validate = new \app\admin\validate\Role();
-            $result = $validate->check($params);
-            if (!$result) {
-                return $this->returnJson(-1, $validate->getError());
-            }
 
             // 数据校验
             $mRole = new \app\admin\model\Role();
@@ -375,27 +371,34 @@ class Role extends Base
             if (!$role) {
                 return $this->returnJson(-1, '请求参数错误！');
             }
-            $role_list = $mRole->listByCondition([]);
-            if (count($role_list) > 0) {
-                foreach ($role_list as $v) {
-                    if ($v['id'] != $params['id'] && $v['name'] == $params['name']) {
-                        return $this->returnJson(-1, '角色名称已存在！');
-                    }
-                }
+
+            $id_arr = explode(',', $params['ids']);
+            $condition[] = ['p.id', 'in', $params['ids']];
+            $mPower = new \app\admin\model\Power();
+            $power_list = $mPower->listByCondition($condition);
+            if (count($id_arr) != count($power_list)) {
+                return $this->returnJson(-1, '请求参数错误！');
             }
 
-            $role['name'] = $params['name'];
-            $role['desc'] = $params['desc'];
+            $arr = [];
+            foreach ($id_arr as $v) {
+                $arr[] = [
+                    'role_id' => $params['id'],
+                    'power_id' => $v
+                ];
+            }
 
             // 启动事物
             $Db = $mRole->db(false);
             $Db->startTrans();
             try {
-                $res_flag = $mRole->edit($role);
-                if (!$res_flag) {
+
+                $mRolePower = new RolePower();
+                $ret = $mRolePower->saveAll($arr);
+                if (count($ret) != count($arr)) {
                     // 回滚事物
                     $Db->rollback();
-                    return $this->returnJson(-1, "编辑失败！");
+                    return $this->returnJson(-1, "分配权限失败！");
                 }
 
                 // 提交事物
@@ -403,10 +406,10 @@ class Role extends Base
             } catch (Exception $e) {
                 // 回滚事物
                 $Db->rollback();
-                return $this->returnJson(-1, "编辑失败！");
+                return $this->returnJson(-1, "分配权限失败！");
             }
 
-            return $this->returnJson(1, '编辑成功！');
+            return $this->returnJson(1, '分配权限成功！');
         } else {
             if (Request::isPost()) {
                 return $this->returnJson(-1, '非法请求！');
@@ -430,6 +433,96 @@ class Role extends Base
             $this->assign('role', $role);
             return view('distribute');
         }
+    }
+
+    /**
+     * 角色权限查询
+     * @return Json|void          [GET请求返回页面，POST请求返回JSON]
+     * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-26 19:10:22
+     */
+    public function selectPower()
+    {
+        if (Request::isAjax()) {
+            if (Request::isPost()) {
+                return $this->returnJson(-1, '非法请求！');
+            }
+
+            $params = input('get.');
+
+            // 参数校验
+            if (!isset($params['id'])) {
+                return $this->returnJson(-1, '缺少请求参数！');
+            }
+
+            // 数据校验
+            $mRole = new \app\admin\model\Role();
+            $role = $mRole->getById($params['id']);
+            if (!$role) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+
+            $mPower = new \app\admin\model\Power();
+            $power_list = $mPower->listByCondition([]);
+
+            if (count($power_list) > 0) {
+                $power_arr = $power_list->toArray();
+                $power_arr = array_map(function ($v) {
+                    $v['label'] = $v['name'];
+                    return $v;
+                }, $power_arr);
+                $power_arr = $this->treeJson($power_arr);
+                $arr = [
+                    'code' => 0,
+                    'data' => $power_arr,
+                ];
+                return json($arr);
+            }
+
+        } else {
+            return $this->error('非法请求！');
+        }
+    }
+
+    /**
+     * 父子级树
+     * @param $arr array          [待排列的数据]
+     * @return array              [已排列的数据]
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-28 19:33:13
+     */
+    private function treeJson($arr)
+    {
+        $arr1 = array_filter($arr, function ($v) {
+            return $v['par_id'] == 0;
+        });
+        $arr1 = array_values($arr1);
+        if (count($arr1) > 0) {
+            foreach ($arr1 as &$v) {
+                $par_id = $v['id'];
+                $arr2 = array_filter($arr, function ($v) use ($par_id) {
+                    return $v['par_id'] == $par_id;
+                });
+                $arr2 = array_values($arr2);
+                if (count($arr2) > 0) {
+                    $v['children'] = $arr2;
+                    foreach ($v['children'] as &$v2) {
+                        $par_id2 = $v2['id'];
+                        $arr3 = array_filter($arr, function ($v) use ($par_id2) {
+                            return $v['par_id'] == $par_id2;
+                        });
+                        $arr3 = array_values($arr3);
+                        if (count($arr3) > 0) {
+                            $v2['children'] = $arr3;
+                        }
+                    }
+                }
+            }
+        }
+        return $arr1;
     }
 }
 

@@ -6,6 +6,7 @@ namespace app\admin\model;
 
 use Exception;
 use think\Collection;
+use think\Db;
 use think\Paginator;
 
 /**
@@ -13,7 +14,7 @@ use think\Paginator;
  * @package app\admin\model
  * @author RonaldoC
  * @version 1.0.0
- * @date 2019-8-7 09:03:43
+ * @date 2019-8-26 19:52:06
  */
 class Power extends Base
 {
@@ -24,57 +25,95 @@ class Power extends Base
      * @throws Exception
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-7 09:04:15
+     * @date 2019-8-28 19:20:06
      */
     public function listByPage($params)
     {
         $condition = [];
         if (isset($params['name']) && !empty($params['name'])) {
-            $condition[] = ['r.name', 'like', '%' . $params['name'] . '%'];
+            $condition[] = ['p.name', 'like', '%' . $params['name'] . '%'];
+        }
+        if (isset($params['module']) && !empty($params['module'])) {
+            $condition[] = ['p.module', 'like', '%' . $params['module'] . '%'];
+        }
+        if (isset($params['controller']) && !empty($params['controller'])) {
+            $condition[] = ['p.controller', 'like', '%' . $params['controller'] . '%'];
+        }
+        if (isset($params['action']) && !empty($params['action'])) {
+            $condition[] = ['p.action', 'like', '%' . $params['action'] . '%'];
         }
         if (isset($params['start']) && !empty($params['start'])) {
-            $condition[] = ['u.create_time', '>=', $params['start']];
+            $condition[] = ['p.create_time', '>=', $params['start']];
         }
         if (isset($params['end']) && !empty($params['end'])) {
-            $condition[] = ['u.create_time', '<=', $params['end']];
+            $condition[] = ['p.create_time', '<=', $params['end']];
         }
-        return $this->alias('r')
-            ->field('r.id,r.par_id,r.name,.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked,u.create_time')
-            ->field('r.name as role_name')
-            ->leftJoin(['__ROLE__' => 'r'], 'u.role_id=r.id')
+        return $this->alias('p')
+            ->field('p.id,p.name,p.module,p.controller,p.action,p.type,p.par_id,p.enabled,p.create_time')
+            ->field('(select count(*) from t_power p2 where p2.par_id=p.id) hasSub')
             ->where($condition)
-            ->order('u.id desc')
+            ->order('p.id asc')
             ->paginate(0, false, ['query' => $params]); // listRows为0则从配置文件中获取
     }
 
     /**
-     * 根据条件查询用户信息
+     * 根据条件查询权限信息
      * @param $params array          [查询条件]
      * @return Collection            [集合对象]
      * @throws Exception
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-6 19:57:04
+     * @date 2019-8-26 19:17:10
      */
     public function listByCondition($params)
     {
-        return $this->alias('u')
-            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked')
+        return $this->alias('p')
+            ->field('p.id,p.name,p.module,p.controller,p.action,p.type,p.par_id,p.enabled,p.create_time')
+            ->field('(select count(*) from t_power p2 where p2.par_id=p.id) hasSub')
             ->where($params)
             ->select();
     }
 
     /**
      * 新增
-     * @param array $user          [用户信息]
+     * @param array $power         [权限信息]
      * @return bool                [成功返回true，失败返回false]
      * @author RonaldoC
      * @version 1.0.0
-     * @date 2019-8-6 19:54:36
+     * @date 2019-8-27 18:33:52
      */
-    public function add($user)
+    public function add($power)
     {
-        return $this->save($user);
+        return $this->save($power);
     }
 
+    /**
+     * 编辑
+     * @param array $power          [权限信息]
+     * @return bool                 [成功返回true，失败返回false]
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-28 18:37:52
+     */
+    public function edit($power)
+    {
+        return $power->save();
+    }
+
+    /**
+     * 批量删除
+     * @param $ids string          [ID集合]
+     * @return int                 [返回成功删除的条数]
+     * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-8-28 19:19:44
+     */
+    public function batchDelete($ids)
+    {
+        return Db::name('power')
+            ->where('id', 'in', $ids)
+            ->useSoftDelete('state', date('Y-m-d G:i:s'))
+            ->delete();
+    }
 }
