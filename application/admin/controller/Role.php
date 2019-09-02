@@ -6,7 +6,6 @@ namespace app\admin\controller;
 use app\admin\model\RolePower;
 use Exception;
 use think\facade\Request;
-use think\facade\Validate;
 use think\response\Json;
 use think\response\View;
 
@@ -317,6 +316,12 @@ class Role extends Base
                     return $this->returnJson(-1, '请求参数错误！');
                 }
 
+                $mUser = new \app\admin\model\User();
+                $user_list = $mUser->listByCondition([['role_id', '=', $params['id']], ['locked', '=', 0]]);
+                if (count($user_list) > 0) {
+                    return $this->returnJson(-1, '请先移除该角色下的用户再进行删除操作！');
+                }
+
                 // 启动事物
                 $Db = $mRole->db(false);
                 $Db->startTrans();
@@ -361,8 +366,11 @@ class Role extends Base
             $params = input('post.');
 
             // 参数校验
-            if (!isset($params['id'])) {
+            if (!isset($params['id']) || !isset($params['ids'])) {
                 return $this->returnJson(-1, '缺少请求参数！');
+            }
+            if (empty($params['ids'])) {
+                return $this->returnJson(-1, '请勾选至少一个选项！');
             }
 
             // 数据校验
@@ -392,8 +400,11 @@ class Role extends Base
             $Db = $mRole->db(false);
             $Db->startTrans();
             try {
-
                 $mRolePower = new RolePower();
+
+                // 先删除后添加
+                $mRolePower->deleteByRoleId($params['id']);
+
                 $ret = $mRolePower->saveAll($arr);
                 if (count($ret) != count($arr)) {
                     // 回滚事物
@@ -468,9 +479,23 @@ class Role extends Base
             $power_list = $mPower->listByCondition([]);
 
             if (count($power_list) > 0) {
+                // 查询角色已有权限
+                $mRolePower = new RolePower();
+                $list = $mRolePower->listByCondition(['role_id' => $params['id']]);
+                $arr = [];
+                if (count($list) > 0) {
+                    $arr = $list->toArray();
+                    $arr = array_column($arr, 'power_id');
+                }
+
                 $power_arr = $power_list->toArray();
-                $power_arr = array_map(function ($v) {
+                $power_arr = array_map(function ($v) use ($arr) {
                     $v['label'] = $v['name'];
+
+                    // 勾选角色已有权限
+                    if (in_array($v['id'], $arr)) {
+                        $v['checked'] = true;
+                    }
                     return $v;
                 }, $power_arr);
                 $power_arr = $this->treeJson($power_arr);
@@ -480,7 +505,6 @@ class Role extends Base
                 ];
                 return json($arr);
             }
-
         } else {
             return $this->error('非法请求！');
         }
@@ -523,6 +547,116 @@ class Role extends Base
             }
         }
         return $arr1;
+    }
+
+    /**
+     * 授予用户角色
+     * @return Json|View          [GET请求返回页面，POST请求返回JSON]
+     * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-9-2 19:49:11
+     */
+    public function authorizeRole()
+    {
+        if (Request::isAjax()) {
+            if (Request::isGet()) {
+                return $this->returnJson(-1, '非法请求！');
+            }
+
+            $params = input('post.');
+
+            // 参数校验
+            if (!isset($params['id']) || !isset($params['ids'])) {
+                return $this->returnJson(-1, '缺少请求参数！');
+            }
+            if (empty($params['ids'])) {
+                return $this->returnJson(-1, '请选择至少一个用户！');
+            }
+
+            // 数据校验
+            $mRole = new \app\admin\model\Role();
+            $role = $mRole->getById($params['id']);
+            if (!$role) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+
+            $id_arr = explode(',', $params['ids']);
+            $condition[] = ['u.id', 'in', $params['ids']];
+            $mUser = new \app\admin\model\User();
+            $user_list = $mUser->listByCondition($condition);
+            if (count($id_arr) != count($user_list)) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+
+            $user_arr = [];
+            if (count($user_list) > 0) {
+                foreach ($user_list as $v) {
+                    $user_arr[] = ['id' => $v['id'], 'role_id' => $params['id']];
+                }
+            }
+
+            // 启动事物
+            $Db = $mRole->db(false);
+            $Db->startTrans();
+            try {
+
+                $ret = $mUser->saveAll($user_arr);
+                if (count($ret) != count($user_arr)) {
+                    // 回滚事物
+                    $Db->rollback();
+                    return $this->returnJson(-1, "授权失败！");
+                }
+
+                // 提交事物
+                $Db->commit();
+            } catch (Exception $e) {
+                // 回滚事物
+                $Db->rollback();
+                return $this->returnJson(-1, "授权失败！");
+            }
+
+            return $this->returnJson(1, '授权成功！');
+        } else {
+            if (Request::isPost()) {
+                return $this->returnJson(-1, '非法请求！');
+            }
+
+            $params = input('get.');
+
+            // 参数校验
+            if (!isset($params['id'])) {
+                return $this->returnJson(-1, '缺少请求参数！');
+            }
+
+            // 数据校验
+            $mRole = new \app\admin\model\Role();
+            $role = $mRole->getById($params['id']);
+            if (!$role) {
+                return $this->returnJson(-1, '请求参数错误！');
+            }
+
+            // 查询系统当前有效用户
+            $mUser = new \app\admin\model\User();
+            $user_list = $mUser->listByCondition([['locked', '=', '0']]);
+
+            // 获取选中用户
+            $selected = [];
+            if (count($user_list) > 0) {
+                foreach ($user_list as $v) {
+                    if ($v['role_id'] == $params['id']) {
+                        $selected[] = $v['id'];
+                    }
+                }
+                $role['ids'] = implode(',', $selected);
+            }
+
+            // 返回参数
+            $this->assign('role', $role);
+            $this->assign('user_list', $user_list);
+            $this->assign('selected_user_list', $selected);
+            return view('authorize');
+        }
     }
 }
 

@@ -162,14 +162,14 @@ class User extends Base
             if (!$user) {
                 return $this->returnJson(-1, '请求参数错误！');
             }
-//            $user_list = $mUser->listByCondition([]);
-//            if (count($user_list) > 0) {
-//                foreach ($user_list as $v) {
-//                    if ($v['id'] != $params['id'] && $v['account'] == $params['account']) {
-//                        return $this->returnJson(-1, '登录名已存在！');
-//                    }
-//                }
-//            }
+            $user_list = $mUser->listByCondition([]);
+            if (count($user_list) > 0) {
+                foreach ($user_list as $v) {
+                    if ($v['id'] != $params['id'] && $v['account'] == $params['account']) {
+                        return $this->returnJson(-1, '登录名已存在！');
+                    }
+                }
+            }
 
             $user['profile'] = $params['profile'];
             $user['nickname'] = $params['nickname'];

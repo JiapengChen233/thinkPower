@@ -64,8 +64,9 @@ class User extends Base
      */
     public function listByCondition($params)
     {
+        $params[] = ['u.id', '<>', 1];
         return $this->alias('u')
-            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked')
+            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked,u.role_id')
             ->where($params)
             ->select();
     }
