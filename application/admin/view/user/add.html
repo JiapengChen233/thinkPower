@@ -88,9 +88,11 @@
                     </div>
                     <div class="layui-form-mid layui-word-aux">请输入您的邮箱</div>
                 </div>
+                {tp:access action="add"}
                 <div class="layui-form-item">
                     <button class="layui-btn" lay-filter="add" lay-submit="">提交</button>
                 </div>
+                {/tp:access}
             </form>
         </div>
         <div class="layui-col-xs2 layui-col-sm2 layui-col-md2">
@@ -112,6 +114,8 @@
         }, function (res) {
             if (res.state === -1) {
                 layer.alert(res.message, {icon: 5});
+            } else if (res.state === 400) {
+                window.location.href = "{:url('admin/login/login')}";
             } else {
                 $("#profile").val(res.data.url);
                 $("#profileImg").attr("src", res.data.access_url);
@@ -155,6 +159,8 @@
             ajaxDefalutRequest(data.field, url, function (res) {
                 if (res.state === -1) {
                     layer.alert(res.message, {icon: 5});
+                } else if (res.state === 400) {
+                    window.location.href = "{:url('admin/login/login')}";
                 } else {
                     layer.alert(res.message, {icon: 6});
                     parent.location.reload();

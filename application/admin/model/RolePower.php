@@ -60,10 +60,25 @@ class RolePower extends Model
      * @author RonaldoC
      * @version 1.0.0
      * @date 2019-9-2 17:29:04
-*/
+     */
     public function deleteByRoleId($role_id)
     {
         return RolePower::where('role_id', $role_id)->delete();
+    }
+
+    /**
+     * 根据角色ID集合删除角色权限信息
+     * @param $ids string               [角色ID集合]
+     * @return int                     [成功删除的条数]
+     * @throws Exception
+     * @throws PDOException
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-9-3 15:32:16
+     */
+    public function deleteByRoleIds($ids)
+    {
+        return RolePower::where('role_id', 'in', $ids)->delete();
     }
 
 }

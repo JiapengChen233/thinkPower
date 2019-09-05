@@ -3,6 +3,8 @@
 
 namespace app\admin\controller;
 
+use think\facade\Session;
+
 /**
  * 主页控制器
  * @package app\admin\controller
@@ -20,6 +22,7 @@ class Index extends Base
      */
     public function index()
     {
+        $this->getMenu();
         return view();
     }
 

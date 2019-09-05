@@ -25,9 +25,11 @@
                         <span class="x-red">*</span>请输入内容
                     </div>
                 </div>
+                {tp:access action="add"}
                 <div class="layui-form-item">
                     <button class="layui-btn" lay-filter="add" lay-submit="">提交</button>
                 </div>
+                {/tp:access}
             </form>
         </div>
     </div>
@@ -63,6 +65,8 @@
             ajaxDefalutRequest(data.field, url, function (res) {
                 if (res.state === -1) {
                     layer.alert(res.message, {icon: 5});
+                } else if (res.state === 400) {
+                    window.location.href = "{:url('admin/login/login')}";
                 } else {
                     layer.alert(res.message, {icon: 6});
                     parent.location.reload();

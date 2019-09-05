@@ -26,3 +26,9 @@
     z-index: 100;
 }
 
+.user-profile-2 {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+

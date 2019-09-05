@@ -105,6 +105,8 @@ function stateStop(title, obj, params, url) {
         ajaxDefalutRequest(params, url, function (res) {
             if (res.state === -1) {
                 layer.alert(res.message, {icon: 5});
+            } else if (res.state === 400) {
+                window.location.href = "{:url('admin/login/login')}";
             } else {
                 if ($(obj).attr('title') === '启用') {
                     $(obj).attr('title', '停用');
@@ -141,6 +143,8 @@ function del(title, obj, params, url) {
         ajaxDefalutRequest(params, url, function (res) {
             if (res.state === -1) {
                 layer.alert(res.message, {icon: 5});
+            } else if (res.state === 400) {
+                window.location.href = "{:url('admin/login/login')}";
             } else {
                 $(obj).parents("tr").remove();
                 layer.msg('已删除!', {icon: 6, time: 1000});
@@ -175,3 +179,5 @@ function delAll(title, url) {
     }
     del(title, obj, "ids=" + arr2, url);
 }
+
+

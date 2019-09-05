@@ -40,5 +40,9 @@ return [
     'tpl_replace_string' => [
         '__ADMIN__' => __MY_PUBLIC_URL__ . 'static' . '/' . 'admin',
         '__COMMON__' => __MY_PUBLIC_URL__ . 'static' . '/' . 'common',
-    ]
+    ],
+    'tpl_cache' => false,
+
+    // 预先加载的标签库
+    'taglib_pre_load' => 'app\admin\taglib\Tp',
 ];

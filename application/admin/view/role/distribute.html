@@ -14,10 +14,11 @@
                         <span class="x-red">*</span>请赋予当前角色权限
                     </div>
                 </div>
-
+                {tp:access action="distributePower"}
                 <div class="layui-form-item">
                     <button class="layui-btn" lay-filter="add" lay-submit="">提交</button>
                 </div>
+                {/tp:access}
             </form>
         </div>
     </div>
@@ -43,7 +44,7 @@
         form.on('submit(add)', function (data) {
             //发异步，把数据提交给php
 
-            const checkData = tree.getChecked(); // 获取选中节点
+            const checkData = tree.getChecked(false, true); // 获取选中节点
             const arr = [];
             checkData.forEach(function (i) {
                 arr.push(i.id);
@@ -52,6 +53,8 @@
             ajaxDefalutRequest("ids=" + str + "&id=<?php if(!empty($role)){echo $role['id'];}?>", "{:url('distributePower')}", function (res) {
                 if (res.state === -1) {
                     layer.alert(res.message, {icon: 5});
+                } else if (res.state === 400) {
+                    window.location.href = "{:url('admin/login/login')}";
                 } else {
                     layer.alert(res.message, {icon: 6});
                     parent.location.reload();
@@ -79,6 +82,8 @@
             ajaxDefalutRequest(checkData, url, function (res) {
                 if (res.state === -1) {
                     layer.alert(res.message, {icon: 5});
+                } else if (res.state === 400) {
+                    window.location.href = "{:url('admin/login/login')}";
                 } else {
                     layer.alert(res.message, {icon: 6});
                     parent.location.reload();

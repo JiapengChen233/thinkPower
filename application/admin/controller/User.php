@@ -83,10 +83,10 @@ class User extends Base
             ];
             $message = [
                 'password.require' => '密码必须！',
-                'password.regex' => '请输入6到16个字符，要求数字、字母和特殊符号！',
+                'password.regex' => '密码请输入6到16个字符，要求数字、字母和特殊符号！',
                 'repass.require' => '确认密码必须！',
                 'repass.confirm' => '两次输入的密码不一致！',
-                'repass.regex' => '请输入6到16个字符，要求数字、字母和特殊符号！',
+                'repass.regex' => '确认密码请输入6到16个字符，要求数字、字母和特殊符号！',
             ];
             $validate = Validate::make($rule, $message);
             $result = $validate->check($params);

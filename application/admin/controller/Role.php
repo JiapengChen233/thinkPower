@@ -284,6 +284,14 @@ class Role extends Base
                     return $this->returnJson(-1, '请求参数错误！');
                 }
 
+                $mUser = new \app\admin\model\User();
+                foreach ($role_list as $v) {
+                    $temp_list = $mUser->listByCondition([['role_id', '=', $v['id']], ['locked', '=', 0]]);
+                    if (count($temp_list) > 0) {
+                        return $this->returnJson(-1, '请先移除角色下的用户再进行删除操作！');
+                    }
+                }
+
                 // 启动事物
                 $Db = $mRole->db(false);
                 $Db->startTrans();
@@ -294,6 +302,10 @@ class Role extends Base
                         $Db->rollback();
                         return $this->returnJson(-1, "删除失败！");
                     }
+
+                    // 删除角色与权限关联记录
+                    $mRolePower = new RolePower();
+                    $mRolePower->deleteByRoleIds($params['ids']);
 
                     // 提交事物
                     $Db->commit();
@@ -332,6 +344,10 @@ class Role extends Base
                         $Db->rollback();
                         return $this->returnJson(-1, "删除失败！");
                     }
+
+                    // 删除角色与权限关联记录
+                    $mRolePower = new RolePower();
+                    $mRolePower->deleteByRoleId($params['id']);
 
                     // 提交事物
                     $Db->commit();
@@ -409,7 +425,7 @@ class Role extends Base
                 if (count($ret) != count($arr)) {
                     // 回滚事物
                     $Db->rollback();
-                    return $this->returnJson(-1, "分配权限失败！");
+                    return $this->returnJson(-1, "操作失败！");
                 }
 
                 // 提交事物
@@ -417,10 +433,10 @@ class Role extends Base
             } catch (Exception $e) {
                 // 回滚事物
                 $Db->rollback();
-                return $this->returnJson(-1, "分配权限失败！");
+                return $this->returnJson(-1, "操作失败！");
             }
 
-            return $this->returnJson(1, '分配权限成功！');
+            return $this->returnJson(1, '操作成功！');
         } else {
             if (Request::isPost()) {
                 return $this->returnJson(-1, '非法请求！');
@@ -570,9 +586,9 @@ class Role extends Base
             if (!isset($params['id']) || !isset($params['ids'])) {
                 return $this->returnJson(-1, '缺少请求参数！');
             }
-            if (empty($params['ids'])) {
-                return $this->returnJson(-1, '请选择至少一个用户！');
-            }
+//            if (empty($params['ids'])) {
+//                return $this->returnJson(-1, '请选择至少一个用户！');
+//            }
 
             // 数据校验
             $mRole = new \app\admin\model\Role();
@@ -581,31 +597,44 @@ class Role extends Base
                 return $this->returnJson(-1, '请求参数错误！');
             }
 
-            $id_arr = explode(',', $params['ids']);
-            $condition[] = ['u.id', 'in', $params['ids']];
             $mUser = new \app\admin\model\User();
-            $user_list = $mUser->listByCondition($condition);
-            if (count($id_arr) != count($user_list)) {
-                return $this->returnJson(-1, '请求参数错误！');
-            }
-
             $user_arr = [];
-            if (count($user_list) > 0) {
-                foreach ($user_list as $v) {
-                    $user_arr[] = ['id' => $v['id'], 'role_id' => $params['id']];
+            if ($params['ids']) {
+                $id_arr = explode(',', $params['ids']);
+                $condition[] = ['u.id', 'in', $params['ids']];
+                $user_list = $mUser->listByCondition($condition);
+                if (count($id_arr) != count($user_list)) {
+                    return $this->returnJson(-1, '请求参数错误！');
+                }
+
+                if (count($user_list) > 0) {
+                    foreach ($user_list as $v) {
+                        $user_arr[] = ['id' => $v['id'], 'role_id' => $params['id']];
+                    }
                 }
             }
+
 
             // 启动事物
             $Db = $mRole->db(false);
             $Db->startTrans();
             try {
 
+                // 先删除后添加
+                $user_list_by_role_id = $mUser->listByCondition([['role_id', '=', $params['id']]]);
+                if (count($user_list_by_role_id) > 0) {
+                    $user_arr2 = [];
+                    foreach ($user_list_by_role_id as $v) {
+                        $user_arr2[] = ['id' => $v['id'], 'role_id' => ''];
+                    }
+                    $mUser->saveAll($user_arr2);
+                }
+
                 $ret = $mUser->saveAll($user_arr);
                 if (count($ret) != count($user_arr)) {
                     // 回滚事物
                     $Db->rollback();
-                    return $this->returnJson(-1, "授权失败！");
+                    return $this->returnJson(-1, "操作失败！");
                 }
 
                 // 提交事物
@@ -613,10 +642,10 @@ class Role extends Base
             } catch (Exception $e) {
                 // 回滚事物
                 $Db->rollback();
-                return $this->returnJson(-1, "授权失败！");
+                return $this->returnJson(-1, "操作失败！");
             }
 
-            return $this->returnJson(1, '授权成功！');
+            return $this->returnJson(1, '操作成功！');
         } else {
             if (Request::isPost()) {
                 return $this->returnJson(-1, '非法请求！');

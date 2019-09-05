@@ -1,32 +1,31 @@
 <div class="left-nav">
     <div id="side-nav">
         <ul id="nav">
+            {notempty name="menu"}
+            {volist name="menu" id="par"}
+            {if $par.type==1}
             <li>
                 <a href="javascript:;">
-                    <i class="iconfont left-nav-li" lay-tips="管理员管理">&#xe726;</i>
-                    <cite>管理员管理</cite>
-                    <i class="iconfont nav_right">&#xe697;</i></a>
+                    <i class="iconfont left-nav-li" lay-tips="{$par.name}">&{$par.icon}</i>
+                    <cite>{$par.name}</cite>
+                    <i class="iconfont nav_right">&#xe697;</i>
+                </a>
                 <ul class="sub-menu">
+                    {volist name="menu" id="sub"}
+                    {if $sub.type==2 && $sub.par_id==$par.id}
                     <li>
-                        <a onclick="xadmin.add_tab('管理员列表','{:url(\'admin/user/index\')}')">
+                        <a onclick="xadmin.add_tab('{$sub.name}','{$sub.url}')">
                             <i class="iconfont">&#xe6a7;</i>
-                            <cite>管理员列表</cite>
+                            <cite>{$sub.name}</cite>
                         </a>
                     </li>
-                    <li>
-                        <a onclick="xadmin.add_tab('角色管理','{:url(\'admin/role/index\')}')">
-                            <i class="iconfont">&#xe6a7;</i>
-                            <cite>角色管理</cite>
-                        </a>
-                    </li>
-                    <li>
-                        <a onclick="xadmin.add_tab('权限管理','{:url(\'admin/power/index\')}')">
-                            <i class="iconfont">&#xe6a7;</i>
-                            <cite>权限管理</cite>
-                        </a>
-                    </li>
+                    {/if}
+                    {/volist}
                 </ul>
             </li>
+            {/if}
+            {/volist}
+            {/notempty}
         </ul>
     </div>
 </div>

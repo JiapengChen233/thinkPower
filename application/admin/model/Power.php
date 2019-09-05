@@ -68,7 +68,7 @@ class Power extends Base
     public function listByCondition($params)
     {
         return $this->alias('p')
-            ->field('p.id,p.name,p.module,p.controller,p.action,p.type,p.par_id,p.enabled,p.create_time')
+            ->field('p.id,p.name,p.module,p.controller,p.action,p.icon,p.type,p.par_id,p.enabled,p.create_time')
             ->field('(select count(*) from t_power p2 where p2.par_id=p.id) hasSub')
             ->where($params)
             ->select();

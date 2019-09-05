@@ -127,4 +127,22 @@ class User extends Base
             ->delete();
     }
 
+    /**
+     * 根据登录名查询用户信息
+     * @param $account string          [登录名]
+     * @return Model                   [用户对象]
+     * @throws Exception
+     * @author RonaldoC
+     * @version 1.0.0
+     * @date 2019-9-3 18:18:21
+     */
+    public function getByAccount($account)
+    {
+        $params[] = ['u.id', '<>', 1];
+        return $this->alias('u')
+            ->field('u.id,u.name,u.nickname,u.account,u.phone,u.email,u.last_login_time,u.locked,u.role_id,u.password,u.salt')
+            ->where(['account' => $account])
+            ->find();
+    }
+
 }

@@ -23,7 +23,7 @@ class User extends Validate
 
     protected $message = [
         'account.require' => '登录名必须！',
-        'account.regex' => '要求以字母开头，后跟字母或数字或下划线，不少于5位！',
+        'account.regex' => '登录名要求以字母开头，后跟字母或数字或下划线，不少于5位！',
         'nickname.require' => '昵称必须！',
         'phone' => '手机格式错误！',
         'email' => '邮箱格式错误！',
