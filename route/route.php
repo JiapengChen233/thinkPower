@@ -8,6 +8,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+Route::get('/', 'admin/login/login');
 
 Route::get('think', function () {
     return 'hello,ThinkPHP5!';
